@@ -1,0 +1,32 @@
+import { chromium } from '@playwright/test';
+import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
+await mkdir('test-results',{recursive:true});
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1280,height:900}});
+const errors=[];page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const read=()=>page.evaluate(()=>window.__pond.inspect());
+const count=async value=>page.locator('#count').evaluate((e,v)=>{e.value=String(v);e.dispatchEvent(new Event('input',{bubbles:true}));},value);
+try{
+ await page.goto(process.env.TEST_URL||'http://localhost:5173');await page.waitForFunction(()=>window.__pond?.inspect().time>1);
+ assert.equal((await read()).audio.loaded,false,'no autoplay or download before user interaction');
+ await page.getByRole('button',{name:'魚種',exact:true}).click();
+ assert.equal(await page.locator('.fish-swatch[role="img"]').count(),6);
+ await page.waitForFunction(()=>Array.from(document.images).every(i=>i.complete));
+ const image=await page.evaluate(async()=>{const i=new Image();i.src='/images/koi-varieties.png';await i.decode();return {width:i.naturalWidth,height:i.naturalHeight};});assert.ok(image.width>1000);
+ await page.screenshot({path:'test-results/realistic-fish-panel.png'});
+ await page.getByRole('button',{name:'設定',exact:true}).click();await page.getByRole('switch',{name:'自然音景'}).click();
+ await page.waitForFunction(()=>window.__pond.inspect().audio.loaded);const music=await read();assert.equal(music.audio.loop,true);assert.ok(music.audio.duration>60);
+ await page.selectOption('#quality','high');await count(24);let s=await read();assert.equal(s.count,24);assert.ok(s.entering>0);assert.ok(s.effectBursts>0);
+ await page.waitForTimeout(100);assert.ok((await read()).audio.releaseSounds>0);
+ await page.getByRole('button',{name:'關閉面板'}).click();await page.screenshot({path:'test-results/fish-release.png'});
+ await page.waitForTimeout(1500);assert.equal((await read()).entering,0);
+ await page.getByRole('button',{name:'設定',exact:true}).click();await count(10);assert.equal((await read()).count,10);assert.ok((await read()).retiring>0);
+ await page.waitForTimeout(1300);assert.equal((await read()).retiring,0);
+ await page.getByRole('switch',{name:'自然音景'}).click();const silent=await read();await count(15);await page.waitForTimeout(300);assert.equal((await read()).audio.releaseSounds,silent.audio.releaseSounds);
+ await page.getByRole('switch',{name:'自然音景'}).click();
+ for(const n of [50,5,45,8,40,5]){await count(n);await page.waitForTimeout(70);}assert.ok((await read()).retiring<=50);await page.waitForTimeout(1500);assert.equal((await read()).retiring,0);
+ console.log('PASS portraits, no autoplay, music decode, addition/removal animations, mute, rapid slider cleanup. Waiting for real audio loop boundary.');
+ await page.waitForFunction(()=>window.__pond.inspect().audio.loops>=1,{},{timeout:70000});s=await read();assert.ok(s.audio.position<s.audio.duration);assert.ok(s.audio.enabled);assert.equal(errors.length,0,errors.join('\n'));
+ await writeFile('test-results/media-results.json',JSON.stringify({audio:s.audio,image,count:s.count,retiring:s.retiring,effectBursts:s.effectBursts,errors},null,2));console.log('PASS full 66-second music loop; no console errors.');
+}finally{await browser.close();}
