@@ -37,6 +37,11 @@ npm test         # 執行測試
 - [TypeScript](https://www.typescriptlang.org/)
 - [Three.js](https://threejs.org/)
 
+## 作者
+
+- 網站：[reikama414.vercel.app](https://reikama414.vercel.app/)
+- GitHub：[ReiKama414/koi-flow](https://github.com/ReiKama414/koi-flow)
+
 ## 授權
 
 本專案以 [MIT License](LICENSE) 釋出。

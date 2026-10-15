@@ -8,3 +8,5 @@
 
 /* Keep pond gestures free of browser text and image selection. */
 html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}img{-webkit-user-drag:none;user-select:none}
+
+#ui a{pointer-events:auto}.author-links{display:flex;align-items:center;gap:8px;margin-top:14px}.author-links a{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#c5d3bc;border:1px solid #d5e0c828;background:#1a40360a;transition:color .2s,background .2s,border-color .2s}.author-links a:hover{color:#f0ebd2;background:#ffffff12;border-color:#e7d5a055}.author-links svg{width:14px;height:14px}.author-credit{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid #d2ddbe1f;font-size:10px;letter-spacing:1px;color:#a8b9a0}.author-credit .author-links{margin-top:0}.author-credit .author-links a{width:26px;height:26px}.panel .author-links a{background:#1a403633}@media(max-width:650px){.author-links{margin-top:10px;gap:6px}.author-links a{width:26px;height:26px}.author-links svg{width:13px;height:13px}}
